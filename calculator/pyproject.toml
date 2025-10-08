@@ -1,0 +1,15 @@
+[project]
+name = "calculator"
+version = "0.1.0"
+description = "A simple calculator application built with Python"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+calculator = "calculator.main:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
