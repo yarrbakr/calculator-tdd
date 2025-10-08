@@ -1,0 +1,34 @@
+{
+  "servers": {
+    "uv-docs": {
+      "name": "UV Documentation",
+      "description": "Access to UV package manager documentation",
+      "endpoint": "https://docs.astral.sh/uv/",
+      "type": "web",
+      "capabilities": {
+        "read": true,
+        "search": true
+      }
+    },
+    "pytest-docs": {
+      "name": "pytest Documentation",
+      "description": "Access to pytest testing framework documentation",
+      "endpoint": "https://docs.pytest.org/",
+      "type": "web",
+      "capabilities": {
+        "read": true,
+        "search": true
+      }
+    },
+    "git-docs": {
+      "name": "Git Documentation",
+      "description": "Access to Git version control documentation",
+      "endpoint": "https://git-scm.com/docs",
+      "type": "web",
+      "capabilities": {
+        "read": true,
+        "search": true
+      }
+    }
+  }
+}

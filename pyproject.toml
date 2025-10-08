@@ -1,0 +1,10 @@
+[project]
+name = "calculator-with-ai"
+version = "0.1.0"
+description = "A calculator application with AI capabilities"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "uv>=0.8.0",
+    "pytest>=8.0.0",
+]
