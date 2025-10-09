@@ -9,6 +9,7 @@ dependencies = [
     "pytest>=8.0.0",
 ]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+[tool.uv.workspace]
+members = [
+    "calculator",
+]
