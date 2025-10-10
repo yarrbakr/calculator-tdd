@@ -5,30 +5,61 @@ This module provides a CLI that supports basic arithmetic operations.
 """
 import argparse
 import sys
-from typing import Union, Optional, NoReturn
+from typing import Union, Optional, NoReturn, List
 import operator
+from . import add, subtract, multiply, divide, power, integer_divide, modulo  # Import our calculator functions
 
 
-def add(x: float, y: float) -> float:
-    """Add two numbers."""
-    return x + y
+def parse_number(value: str) -> float:
+    """Parse a string value to a number, handling various input formats."""
+    try:
+        # Try to convert to float first
+        num = float(value)
+        return num
+    except ValueError:
+        # If it fails, raise a proper error
+        raise ValueError(f"Invalid number format: '{value}'")
 
 
-def subtract(x: float, y: float) -> float:
-    """Subtract two numbers."""
-    return x - y
-
-
-def multiply(x: float, y: float) -> float:
-    """Multiply two numbers."""
-    return x * y
-
-
-def divide(x: float, y: float) -> float:
-    """Divide two numbers."""
-    if y == 0:
-        raise ZeroDivisionError("Cannot divide by zero")
-    return x / y
+def safe_calculate(operation: str, x: str, y: str) -> Optional[float]:
+    """Safely perform calculation with error handling."""
+    try:
+        num_x = parse_number(x)
+        num_y = parse_number(y)
+        
+        if operation == "add":
+            return add(num_x, num_y)
+        elif operation == "subtract":
+            return subtract(num_x, num_y)
+        elif operation == "multiply":
+            return multiply(num_x, num_y)
+        elif operation == "divide":
+            return divide(num_x, num_y)
+        elif operation == "power":
+            return power(num_x, num_y)
+        elif operation == "integer_divide":
+            return integer_divide(num_x, num_y)
+        elif operation == "modulo":
+            return modulo(num_x, num_y)
+        else:
+            print(f"Error: Unknown operation '{operation}'")
+            return None
+            
+    except ValueError as e:
+        print(f"Value Error: {e}")
+        return None
+    except ZeroDivisionError as e:
+        print(f"Division Error: {e}")
+        return None
+    except TypeError as e:
+        print(f"Type Error: {e}")
+        return None
+    except OverflowError as e:
+        print(f"Overflow Error: {e}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return None
 
 
 def calculate(operation: str, x: float, y: float) -> float:
@@ -64,7 +95,7 @@ def create_parser() -> argparse.ArgumentParser:
     """Create and configure the argument parser."""
     # Don't auto-exit on help by using add_help=False and handling it manually
     parser = argparse.ArgumentParser(
-        description="Calculator CLI - Perform basic arithmetic operations",
+        description="Calculator CLI - Perform arithmetic operations with error handling",
         prog="calculator",
         add_help=False,  # Disable auto help so we can handle it manually
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -74,6 +105,8 @@ Examples:
   calculator subtract 10 4
   calculator multiply 2.5 4
   calculator divide 15 3
+  calculator power 2 3
+  calculator modulo 10 3
   calculator --help
         """.strip()
     )
@@ -81,7 +114,8 @@ Examples:
     parser.add_argument(
         'operation',
         nargs='?',
-        help="Operation to perform: add, subtract, multiply, divide"
+        choices=["add", "subtract", "multiply", "divide", "power", "integer_divide", "modulo"],
+        help="Operation to perform"
     )
     
     parser.add_argument(
@@ -117,12 +151,15 @@ def print_help(parser: argparse.ArgumentParser) -> NoReturn:
     sys.exit(0)
 
 
-def main() -> None:
+def main(args: List[str] = None) -> int:
     """Main entry point for the calculator CLI."""
+    if args is None:
+        args = sys.argv[1:]
+    
     parser = create_parser()
     
     # Check for help before parsing to avoid exit
-    if '--help' in sys.argv or '-h' in sys.argv:
+    if '--help' in args or '-h' in args:
         # Capture help text to print using Python's print function
         import io
         import sys as sys_module
@@ -137,7 +174,7 @@ def main() -> None:
         sys.exit(0)
     
     # If no arguments provided (other than the script name), show help
-    if len(sys.argv) == 1:
+    if len(args) == 0:
         # Capture help text to print using Python's print function
         import io
         import sys as sys_module
@@ -151,15 +188,20 @@ def main() -> None:
         print(help_text, end='')  # Use Python's print function to output help
         sys.exit(0)
     
-    args = parser.parse_args()
+    try:
+        # Parse arguments without exiting on error
+        args_parsed = parser.parse_args(args) 
+    except SystemExit:
+        # argparse calls sys.exit on error, we'll handle that gracefully
+        return 1
     
     # Handle version flag
-    if args.version:
+    if args_parsed.version:
         print_version()
-        return
+        return 0
     
     # Handle operation and operands
-    if not args.operation:
+    if not args_parsed.operation:
         print("Error: Operation is required")
         # Capture help text to print using Python's print function
         import io
@@ -172,17 +214,17 @@ def main() -> None:
         finally:
             sys_module.stdout = old_stdout
         print(help_text, end='')  # Use Python's print function to output help
-        sys.exit(1)
+        return 1
     
     # Validate operation name - must be case-sensitive
-    valid_operations = ['add', 'subtract', 'multiply', 'divide']
-    if args.operation not in valid_operations:  # Case-sensitive check
-        print(f"Error: Invalid operation '{args.operation}'. Valid operations are: {', '.join(valid_operations)}")
-        sys.exit(1)
+    valid_operations = ["add", "subtract", "multiply", "divide", "power", "integer_divide", "modulo"]
+    if args_parsed.operation not in valid_operations:  # Case-sensitive check
+        print(f"Error: Invalid operation '{args_parsed.operation}'. Valid operations are: {', '.join(valid_operations)}")
+        return 1
     
     # Check number of operands
-    if len(args.operands) != 2:
-        print(f"Error: Expected 2 operands for {args.operation}, got {len(args.operands)}")
+    if len(args_parsed.operands) != 2:
+        print(f"Error: Expected 2 operands for {args_parsed.operation}, got {len(args_parsed.operands)}")
         # Capture help text to print using Python's print function
         import io
         import sys as sys_module
@@ -194,27 +236,18 @@ def main() -> None:
         finally:
             sys_module.stdout = old_stdout
         print(help_text, end='')  # Use Python's print function to output help
-        sys.exit(1)
+        return 1
     
-    # Parse operands
-    try:
-        x = float(args.operands[0])
-        y = float(args.operands[1])
-    except ValueError:
-        print("Error: Operands must be valid numbers")
-        sys.exit(1)
+    # Perform calculation with error handling
+    result = safe_calculate(args_parsed.operation, args_parsed.operands[0], args_parsed.operands[1])
     
-    # Perform calculation
-    try:
-        result = calculate(args.operation, x, y)  # Don't convert to lower case
-        print(result)
-    except ZeroDivisionError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+    if result is not None:
+        print(f"Result: {result}")
+        return 0
+    else:
+        print("Operation failed.")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

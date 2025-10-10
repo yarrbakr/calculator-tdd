@@ -137,5 +137,109 @@ def divide(a: Number, b: Number) -> float:
     # Perform the division
     return float(a / b)
 
+def power(a: Number, b: Number) -> float:
+    """
+    Raise a number to the power of another number.
+
+    Args:
+        a: Base number
+        b: Exponent
+
+    Returns:
+        The result of a raised to the power of b (a ** b)
+    """
+    # Handle special float cases (infinity and NaN)
+    if isinstance(a, float) or isinstance(b, float):
+        import math
+        # If either value is NaN, result should be NaN
+        if math.isnan(a) or math.isnan(b):
+            return float('nan')
+        # Handle infinity cases
+        if math.isinf(b) and a == 1:
+            return 1.0  # 1^inf = 1
+        if math.isinf(b) and abs(a) > 1:
+            return float('inf') if b > 0 else 0.0
+        if math.isinf(b) and abs(a) < 1:
+            return 0.0 if b > 0 else float('inf')
+        if math.isinf(a) and b > 0:
+            return a if (b > 0) else 0.0
+        if math.isinf(a) and b < 0:
+            return 0.0
+
+    # Perform the exponentiation
+    try:
+        return float(a ** b)
+    except OverflowError:
+        import math
+        return float('inf') if (a > 0 or (a < 0 and int(b) % 2 == 0)) else float('-inf')
+
+def integer_divide(a: Number, b: Number) -> int:
+    """
+    Perform integer division of two numbers.
+
+    Args:
+        a: Dividend
+        b: Divisor
+
+    Returns:
+        The integer result of a divided by b (a // b)
+
+    Raises:
+        ZeroDivisionError: If b is zero
+    """
+    if b == 0:
+        raise ZeroDivisionError("Cannot divide by zero")
+
+    # Handle special cases
+    if isinstance(a, float) or isinstance(b, float):
+        import math
+        if math.isnan(a) or math.isnan(b):
+            return float('nan')
+        if math.isinf(a) and not math.isinf(b):
+            # inf // finite number
+            return int(a)
+        elif not math.isinf(a) and math.isinf(b):
+            # finite // inf = 0
+            return 0
+        elif math.isinf(a) and math.isinf(b):
+            # inf // inf is indeterminate
+            return float('nan')
+
+    # Perform integer division
+    return int(a // b)
+
+def modulo(a: Number, b: Number) -> Number:
+    """
+    Calculate the remainder of division of two numbers.
+
+    Args:
+        a: Dividend
+        b: Divisor
+
+    Returns:
+        The remainder of a divided by b (a % b)
+
+    Raises:
+        ZeroDivisionError: If b is zero
+    """
+    if b == 0:
+        raise ZeroDivisionError("Cannot divide by zero")
+
+    # Handle special cases
+    if isinstance(a, float) or isinstance(b, float):
+        import math
+        if math.isnan(a) or math.isnan(b):
+            return float('nan')
+        if math.isinf(a) and not math.isinf(b):
+            # inf % finite number is undefined but we return nan
+            return float('nan')
+        elif not math.isinf(a) and math.isinf(b):
+            # finite % inf is the finite number
+            return a
+
+    # Perform modulo operation
+    return a % b
+
+
 # Export the functions
-__all__ = ['add', 'subtract', 'multiply', 'divide']
+__all__ = ['add', 'subtract', 'multiply', 'divide', 'power', 'integer_divide', 'modulo']
